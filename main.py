@@ -1,25 +1,23 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+import requests
+from bs4 import BeautifulSoup
 
 app = FastAPI()
 
+# ① 画像判定API用のモデル（残す）
 class ImageRequest(BaseModel):
     image_url: str
 
+# ② 画像判定API（残す）
 @app.post("/identify_weapon")
 def identify_weapon(req: ImageRequest):
-    # 今は仮の固定レスポンス
     return {
         "weapon_name": "ロムフェーヤ",
         "status": "success"
     }
 
-import requests
-from bs4 import BeautifulSoup
-from fastapi import FastAPI
-
-app = FastAPI()
-
+# ③ GameWith スクレイピングAPI（追加）
 @app.get("/weapon_data")
 def get_weapon_data(name: str):
     headers = {"User-Agent": "Mozilla/5.0"}
