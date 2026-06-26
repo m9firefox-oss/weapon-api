@@ -14,6 +14,7 @@ def identify_weapon(req: ImageRequest):
         "status": "success"
     }
 
+from googlesearch import search
 import requests
 from bs4 import BeautifulSoup
 
@@ -22,16 +23,11 @@ def get_weapon_data(name: str):
     headers = {"User-Agent": "Mozilla/5.0"}
 
     # Google検索でGameWithの武器ページを探す
-    search_url = f"https://www.google.com/search?q={name}+gamewith"
-    html = requests.get(search_url, headers=headers).text
-    soup = BeautifulSoup(html, "html.parser")
-
-    # 最初のGameWithリンクを抽出
+    query = f"{name} site:gamewith.jp"
     link = None
-    for a in soup.find_all("a"):
-        href = a.get("href", "")
-        if "gamewith.jp" in href:
-            link = href.replace("/url?q=", "").split("&")[0]
+    for url in search(query, num_results=5):
+        if "gamewith.jp" in url:
+            link = url
             break
 
     if not link:
