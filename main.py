@@ -28,7 +28,7 @@ def get_weapon_data(name: str):
     list_soup = BeautifulSoup(list_html, "html.parser")
 
     # 2. 全武器リンクを取得
-    weapon_links = list_soup.select("a.article_list_item")
+    weapon_links = list_soup.select("a.card__link")
     target_url = None
 
     for a in weapon_links:
