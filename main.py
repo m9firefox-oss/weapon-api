@@ -14,8 +14,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# JSON の読み込み
-JSON_PATH = os.path.join(os.path.dirname(__file__), "weapon_ssr.json")
+# JSON の読み込み（Kamigame 版）
+JSON_PATH = os.path.join(os.path.dirname(__file__), "weapon_ssr_kamigame.json")
 
 with open(JSON_PATH, "r", encoding="utf-8") as f:
     WEAPON_DATA = json.load(f)
@@ -23,13 +23,13 @@ with open(JSON_PATH, "r", encoding="utf-8") as f:
 
 @app.get("/")
 def root():
-    return {"status": "ok", "message": "GBF Weapon API (SSR + 特殊SSR)"}
+    return {"status": "ok", "message": "GBF Weapon API (Kamigame SSR版)"}
 
 
 @app.get("/weapon_data")
 def get_weapon_data(name: str):
     """
-    武器名を受け取り、SSR + 特殊SSR の JSON から該当データを返す
+    武器名を受け取り、Kamigame SSR JSON から該当データを返す
     """
     if name in WEAPON_DATA:
         return {
