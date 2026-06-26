@@ -27,7 +27,8 @@ def get_weapon_data(name: str):
     query = f"{name} site:gamewith.jp"
     link = None
     try:
-        for url in search(query, num_results=5):
+        # num_results → stop に変更
+        for url in search(query, stop=5):
             if "gamewith.jp" in url:
                 link = url
                 break
