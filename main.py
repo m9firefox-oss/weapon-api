@@ -1,33 +1,16 @@
-import requests
-from bs4 import BeautifulSoup
-from fastapi import FastAPI
-from pydantic import BaseModel
-
-app = FastAPI()
-
-class ImageRequest(BaseModel):
-    image_url: str
-
-@app.post("/identify_weapon")
-def identify_weapon(req: ImageRequest):
-    return {
-        "weapon_name": "ロムフェーヤ",
-        "status": "success"
-    }
-
 @app.get("/weapon_data")
 def get_weapon_data(name: str):
     headers = {"User-Agent": "Mozilla/5.0"}
 
-    # 1. Bing検索でGameWith武器ページを探す
+    # 1. DuckDuckGo検索でGameWith武器ページを探す
     query = f"{name} グラブル 武器 site:gamewith.jp"
-    search_url = f"https://www.bing.com/search?q={query}"
+    search_url = f"https://duckduckgo.com/html/?q={query}"
     html = requests.get(search_url, headers=headers).text
     soup = BeautifulSoup(html, "html.parser")
 
     # 2. 最初のGameWithリンクを取得
     target_url = None
-    for a in soup.select("a"):
+    for a in soup.select("a.result__a"):
         href = a.get("href", "")
         if "gamewith.jp" in href and "/article/show/" in href:
             target_url = href
