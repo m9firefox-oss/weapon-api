@@ -1,3 +1,22 @@
+from fastapi import FastAPI
+from pydantic import BaseModel
+import requests
+from bs4 import BeautifulSoup
+
+app = FastAPI()
+
+# 画像判定API（仮）
+class ImageRequest(BaseModel):
+    image_url: str
+
+@app.post("/identify_weapon")
+def identify_weapon(req: ImageRequest):
+    return {
+        "weapon_name": "ロムフェーヤ",
+        "status": "success"
+    }
+
+# 武器情報取得API（DuckDuckGo検索 → GameWith個別ページ）
 @app.get("/weapon_data")
 def get_weapon_data(name: str):
     headers = {"User-Agent": "Mozilla/5.0"}
@@ -37,14 +56,4 @@ def get_weapon_data(name: str):
 
     rows = table.find_all("tr")
     element = rows[0].find_all("td")[1].text.strip()
-    weapon_type = rows[1].find_all("td")[1].text.strip()
-    rarity = rows[2].find_all("td")[1].text.strip()
-
-    return {
-        "weapon_name": weapon_name,
-        "image_url": image_url,
-        "element": element,
-        "weapon_type": weapon_type,
-        "rarity": rarity,
-        "source_url": target_url
-    }
+    weapon_type = rows[1].find_all
