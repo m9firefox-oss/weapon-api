@@ -17,7 +17,7 @@ def identify_weapon(req: ImageRequest):
         "status": "success"
     }
 
-# ③ GameWith スクレイピングAPI（追加）
+# ③ GameWith スクレイピングAPI（完全版）
 @app.get("/weapon_data")
 def get_weapon_data(name: str):
     headers = {"User-Agent": "Mozilla/5.0"}
@@ -27,12 +27,19 @@ def get_weapon_data(name: str):
     list_html = requests.get(list_url, headers=headers).text
     list_soup = BeautifulSoup(list_html, "html.parser")
 
-    # 2. 全武器リンクを取得
+    # 2. 全武器リンクを取得（現行 GameWith 構造に対応）
     weapon_links = list_soup.select("a.card__link")
     target_url = None
 
     for a in weapon_links:
-        weapon_name = a.text.strip()
+        # 武器名は .card__title に入っている
+        title_tag = a.select_one(".card__title")
+        if not title_tag:
+            continue
+
+        weapon_name = title_tag.text.strip()
+
+        # 部分一致で検索
         if name in weapon_name:
             target_url = "https://gamewith.jp" + a["href"]
             break
