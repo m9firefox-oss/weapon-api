@@ -24,30 +24,36 @@ app = FastAPI()
 def get_weapon_data(name: str):
     headers = {"User-Agent": "Mozilla/5.0"}
 
-    # GameWith の内部検索
-    search_url = f"https://gamewith.jp/search?q={name}"
-    search_html = requests.get(search_url, headers=headers).text
-    search_soup = BeautifulSoup(search_html, "html.parser")
+    # 1. GameWith の武器一覧ページを取得
+    list_url = "https://gamewith.jp/granbluefantasy/article/list/weapon"
+    list_html = requests.get(list_url, headers=headers).text
+    list_soup = BeautifulSoup(list_html, "html.parser")
 
-    # 検索結果の最初のカードリンクを取得
-    first_link = search_soup.select_one("a.card__link")
-    if not first_link:
-        return {"error": "GameWith page not found"}
+    # 2. 全武器リンクを取得
+    weapon_links = list_soup.select("a.article_list_item")
+    target_url = None
 
-    link = "https://gamewith.jp" + first_link["href"]
+    for a in weapon_links:
+        weapon_name = a.text.strip()
+        if name in weapon_name:
+            target_url = "https://gamewith.jp" + a["href"]
+            break
 
-    # 武器ページを取得
-    page = requests.get(link, headers=headers).text
+    if not target_url:
+        return {"error": "Weapon not found in list"}
+
+    # 3. 武器ページを取得
+    page = requests.get(target_url, headers=headers).text
     s = BeautifulSoup(page, "html.parser")
 
-    # 武器名
+    # 4. 武器名
     weapon_name = s.find("h1").text.strip() if s.find("h1") else name
 
-    # 武器画像
+    # 5. 武器画像
     image_tag = s.select_one("div.article__image img")
     image_url = image_tag["src"] if image_tag else None
 
-    # 属性・武器種・レアリティ
+    # 6. 属性・武器種・レアリティ
     table = s.find("table")
     if not table:
         return {"error": "Weapon table not found"}
@@ -63,5 +69,5 @@ def get_weapon_data(name: str):
         "element": element,
         "weapon_type": weapon_type,
         "rarity": rarity,
-        "source_url": link
+        "source_url": target_url
     }
