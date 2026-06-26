@@ -14,7 +14,6 @@ def identify_weapon(req: ImageRequest):
         "status": "success"
     }
 
-from googlesearch import search
 import requests
 from bs4 import BeautifulSoup
 from fastapi import FastAPI
@@ -24,26 +23,30 @@ app = FastAPI()
 @app.get("/weapon_data")
 def get_weapon_data(name: str):
     headers = {"User-Agent": "Mozilla/5.0"}
-    query = f"{name} site:gamewith.jp"
-    link = None
-    try:
-        # num_results → stop に変更
-        for url in search(query, stop=5):
-            if "gamewith.jp" in url:
-                link = url
-                break
-    except Exception as e:
-        return {"error": f"Search failed: {str(e)}"}
 
-    if not link:
+    # GameWith の内部検索を使う
+    search_url = f"https://gamewith.jp/search?q={name}"
+    search_html = requests.get(search_url, headers=headers).text
+    search_soup = BeautifulSoup(search_html, "html.parser")
+
+    # 最初の検索結果リンクを取得
+    first_link = search_soup.find("a", href=True)
+    if not first_link:
         return {"error": "GameWith page not found"}
 
+    link = "https://gamewith.jp" + first_link["href"]
+
+    # 武器ページを取得
     page = requests.get(link, headers=headers).text
     s = BeautifulSoup(page, "html.parser")
 
+    # 武器名
     weapon_name = s.find("h1").text.strip() if s.find("h1") else name
+
+    # 武器画像
     image_url = s.find("img")["src"] if s.find("img") else None
 
+    # 属性・武器種・レアリティ
     table = s.find("table")
     if not table:
         return {"error": "Weapon table not found"}
