@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import requests
 from bs4 import BeautifulSoup
+import urllib.parse
 
 app = FastAPI()
 
@@ -23,17 +24,19 @@ def get_weapon_data(name: str):
 
     # 1. DuckDuckGo検索でGameWith武器ページを探す
     query = f"{name} グラブル 武器 site:gamewith.jp"
-    search_url = f"https://duckduckgo.com/html/?q={query}"
+    search_url = f"https://duckduckgo.com/html/?q={urllib.parse.quote(query)}"
     html = requests.get(search_url, headers=headers).text
     soup = BeautifulSoup(html, "html.parser")
 
-    # 2. 最初のGameWithリンクを取得
+    # 2. 最初のGameWithリンクを取得（uddg= の中に本物のURLが入っている）
     target_url = None
     for a in soup.select("a.result__a"):
         href = a.get("href", "")
-        if "gamewith.jp" in href and "/article/show/" in href:
-            target_url = href
-            break
+        if "uddg=" in href:
+            real_url = urllib.parse.parse_qs(urllib.parse.urlparse(href).query).get("uddg", [""])[0]
+            if "gamewith.jp" in real_url and "/article/show/" in real_url:
+                target_url = real_url
+                break
 
     if not target_url:
         return {"error": "GameWith page not found from search"}
@@ -56,4 +59,14 @@ def get_weapon_data(name: str):
 
     rows = table.find_all("tr")
     element = rows[0].find_all("td")[1].text.strip()
-    weapon_type = rows[1].find_all
+    weapon_type = rows[1].find_all("td")[1].text.strip()
+    rarity = rows[2].find_all("td")[1].text.strip()
+
+    return {
+        "weapon_name": weapon_name,
+        "image_url": image_url,
+        "element": element,
+        "weapon_type": weapon_type,
+        "rarity": rarity,
+        "source_url": target_url
+    }
