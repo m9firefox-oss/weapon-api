@@ -24,13 +24,13 @@ app = FastAPI()
 def get_weapon_data(name: str):
     headers = {"User-Agent": "Mozilla/5.0"}
 
-    # GameWith の内部検索を使う
+    # GameWith の内部検索
     search_url = f"https://gamewith.jp/search?q={name}"
     search_html = requests.get(search_url, headers=headers).text
     search_soup = BeautifulSoup(search_html, "html.parser")
 
-    # 最初の検索結果リンクを取得
-    first_link = search_soup.find("a", href=True)
+    # 検索結果の最初のカードリンクを取得
+    first_link = search_soup.select_one("a.card__link")
     if not first_link:
         return {"error": "GameWith page not found"}
 
@@ -44,7 +44,8 @@ def get_weapon_data(name: str):
     weapon_name = s.find("h1").text.strip() if s.find("h1") else name
 
     # 武器画像
-    image_url = s.find("img")["src"] if s.find("img") else None
+    image_tag = s.select_one("div.article__image img")
+    image_url = image_tag["src"] if image_tag else None
 
     # 属性・武器種・レアリティ
     table = s.find("table")
